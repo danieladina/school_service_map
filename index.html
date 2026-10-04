@@ -307,6 +307,21 @@ table.plan-table tr:last-child td{border-bottom:none;}
 .sheet-body img{display:block; width:100%; height:auto; border-radius:8px; box-shadow:0 2px 12px rgba(20,22,52,.12);}
 @media print{.sheet-overlay{display:none !important;}}
 
+.exam-note{
+  margin-top:8px; font-size:12px; line-height:1.5; color:var(--teal-strong);
+  background:var(--teal-dim); border-radius:10px; padding:7px 11px;
+}
+.exam-group{margin-bottom:18px;}
+.exam-group:last-of-type{margin-bottom:0;}
+.exam-group-title{font-size:14px; font-weight:800; color:var(--ink); margin-bottom:6px;}
+.exam-row{
+  display:grid; grid-template-columns:110px 60px 1fr; gap:10px; align-items:baseline;
+  padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;
+}
+.exam-date{font-weight:800; color:var(--indigo); direction:ltr; text-align:right;}
+.exam-day{color:var(--slate); font-size:12.5px;}
+.exam-subj{color:var(--ink);}
+
 .info-link{
   display:inline-flex; align-items:center; border-radius:999px;
   border:1.5px solid var(--line); background:#fff; color:var(--ink) !important;
@@ -353,6 +368,7 @@ footer.printfoot{display:none;}
   </div>
   <div class="topbar-actions">
     <a class="pill pill-form-highlight" href="https://wkf.ms/4e42Kre" target="_blank" rel="noopener">✍️ טופס הזמנת מענים</a>
+    <button class="pill" id="btnExams">לוח מועדים</button>
     <a class="pill pill-link" href="https://innotechedu.monday.com/overviews/37584966" target="_blank" rel="noopener">סטטוס הזמנות</a>
     <a class="pill pill-link" href="https://innotechedu.monday.com/boards/18416639685/views/262475383" target="_blank" rel="noopener">פרטי בתי ספר</a>
     <input type="file" id="importFileInput" accept="application/json" style="display:none;">
@@ -422,6 +438,68 @@ function openInfoSheet(id){
   document.addEventListener('keydown', onKey);
   document.body.appendChild(ov);
 }
+/* ---- מועדי בחינות תשפ"ז (מתמטיקה / פיזיקה / מדעי המחשב) ----
+   מקור: לוחות אגף בכיר בחינות, טיוטה 12.07.2026 – כפופים לשינויים. */
+const EXAM_GROUPS = [
+  {title:'בגרות – מועד חורף תשפ"ז', rows:[
+    {d:'11.1.27', day:'שני',   subj:'מתמטיקה'},
+    {d:'12.1.27', day:'שלישי', subj:'מתמטיקה'},
+  ]},
+  {title:'בגרות – מועד קיץ תשפ"ז', rows:[
+    {d:'5.5.27',  day:'רביעי', subj:'מדעי המחשב'},
+    {d:'26.5.27', day:'רביעי', subj:'מתמטיקה'},
+    {d:'27.5.27', day:'חמישי', subj:'מתמטיקה'},
+    {d:'23.6.27', day:'רביעי', subj:'פיזיקה – מעבדה'},
+    {d:'28.6.27', day:'שני',   subj:'פיזיקה'},
+    {d:'8.7.27',  day:'חמישי', subj:'מתמטיקה – מועד ב\''},
+  ]},
+  {title:'מבחנים ארציים', rows:[
+    {d:'25.11.26', day:'רביעי', subj:'תנופה מתמטיקה – כיתה ט\''},
+    {d:'12.1.27',  day:'שלישי', subj:'תנופה מדעים – כיתה ט\''},
+    {d:'אפריל–מאי 27', day:'',  subj:'מבחן טימס (TIMSS)'},
+  ]},
+];
+const EXAM_NOTES = {
+  bagroup:'מועדי בגרות: מתמטיקה 11–12.1 (חורף) · 26–27.5 (קיץ) · מדמ"ח 5.5 · פיזיקה 28.6',
+  tech_mentors_marathon:'מועדי בגרות קיץ: מדמ"ח 5.5 · מתמטיקה 26–27.5 · פיזיקה 28.6',
+  virtual_high_school:'בגרות קיץ: מתמטיקה 26–27.5 · פיזיקה מעבדה 23.6 · פיזיקה 28.6',
+};
+function examNoteHtml(id){
+  const t = EXAM_NOTES[id];
+  return t ? `<div class="exam-note">${t}</div>` : '';
+}
+function openExamsDialog(){
+  const ov = document.createElement('div');
+  ov.className = 'sheet-overlay';
+  ov.innerHTML = `
+    <div class="sheet-box" role="dialog" aria-modal="true" style="max-width:620px;">
+      <div class="sheet-head">
+        <span class="sheet-title">לוח מועדים · מתמטיקה, פיזיקה ומדעי המחשב</span>
+        <button class="sheet-close" aria-label="סגור">✕</button>
+      </div>
+      <div class="sheet-body" style="background:#fff;">
+        ${EXAM_GROUPS.map(g=>`
+          <div class="exam-group">
+            <div class="exam-group-title">${g.title}</div>
+            ${g.rows.map(r=>`
+              <div class="exam-row">
+                <span class="exam-date">${r.d}</span>
+                <span class="exam-day">${r.day}</span>
+                <span class="exam-subj">${r.subj}</span>
+              </div>`).join('')}
+          </div>`).join('')}
+        <p class="q-hint" style="margin:16px 0 0;">לפי לוחות אגף בכיר בחינות (טיוטה 12.07.2026). המועדים כפופים לשינויים.</p>
+      </div>
+    </div>`;
+  const close = ()=>{ ov.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = ev=>{ if(ev.key==='Escape') close(); };
+  ov.addEventListener('click', ev=>{ if(ev.target===ov) close(); });
+  ov.querySelector('.sheet-close').addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+}
+document.addEventListener('click', e=>{ if(e.target.closest && e.target.closest('#btnExams')) openExamsDialog(); });
+
 function infoLinkHtml(id){
   if(INFO_SHEETS[id]){
     return `<a class="info-link" href="#" onclick="event.preventDefault();event.stopPropagation();openInfoSheet('${id}')">מידע נוסף</a>`;
@@ -433,103 +511,103 @@ function infoLinkHtml(id){
 
 const ITEMS = [
 {id:'virtual_class_physics', name:'הייטק וירטואלי', category:'פדגוגי',
- description:'אופציה לכיתה ללמוד וירטואלית בבית הספר עם השגחה של מורה כלשהו, או מהבית באמצעות זום. פיזיקה ז–ח, מדמ"ח ז–ט.',
+ description:'המענה נותן אופציה לכיתה ללמוד וירטואלית בביה"ס עם השגחה של מורה כלשהו או מהבית באמצעות זום. פיזיקה ז–ח, מדמ"ח ז–ט.',
  needs:['teacher_shortage'], ages:['ז','ח','ט'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'חוסר במורה · כיתת מחשבים עם אפשרות לשמיעת סאונד · מורה מלווה', period:'ספטמבר–יוני', status:'יצא לפרסום',
  knowledge:3, mental:0},
 
 {id:'virtual_high_school', name:'תיכון וירטואלי', category:'פדגוגי',
- description:'אופציה לבית ספר קטן שאין לו אפשרות לפתוח מגמה עצמאית או לרכוש מגפ"ן – לימוד מרוכז עם בתי ספר אחרים.',
+ description:'המענה נותן אופציה לביה"ס קטן, שאין לו אפשרות לפתוח מגמה או לקנות בגפן, לרשום תלמידים לכיתה וירטואלית שלומדת עם מורה מוביל עד לבגרות. זמין למתמטיקה ופיזיקה.',
  needs:['teacher_shortage'], ages:['י','יא'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'בית ספר עם תלמידים הלומדים 5 יח"ל מתמטיקה ומדמ"ח ורוצים גם 5 פיזיקה, או לומדים 5 פיזיקה ורוצים 5 מתמטיקה.', period:'ספטמבר–יוני', status:'יצא לפרסום',
  knowledge:3, mental:0, groupKey:null},
 
 {id:'makpetza', name:'מקפצה אישית', category:'פדגוגי',
- description:'20 שיעורים בזום ל-3–4 תלמידים מאותה כיתה, בהתאם למיפוי הקשיים שביצע בית הספר.',
+ description:'20 שיעורים בזום ל-3–4 תלמידים מאותה כיתה לפי מיפוי בית הספר.',
  needs:['reinforcement'], ages:['ח','ט','י','יא'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'על בסיס כל הקודם זוכה (עד 5 קבוצות לבית ספר).', period:'נובמבר–יוני', status:'יצא לפרסום',
  knowledge:3, mental:0, quotaByStatus:{'ממשיך':5,'חדש':5}},
 
 {id:'bagroup', name:'בגרופ', category:'פדגוגי',
- description:'שיעורים סינכרוניים בוואטסאפ, שמונה שבועות לפני הבגרות, כולל פורום שאלות ותשובות רציף.',
+ description:'שיעורים סינכרוניים בוואטסאפ 8 שבועות לפני הבגרות, כולל פורום שאלות ותשובות.',
  needs:['reinforcement','bagrut_prep'], ages:['יא','יב'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'על בסיס מקום פנוי.', period:'8 שבועות לפני הבגרות', status:'לפני בגרויות',
  knowledge:3, mental:0},
 
 {id:'virtual_reinforcement', name:'חונכות וירטואלית', category:'פדגוגי',
- description:'חונכות בקבוצות של 3 תלמידים מאותה כיתה לפי מיפוי בית הספר, מתבצע במיט לאורך כל השנה – תמיכה בידע ובמנטלי.',
+ description:'חונכות בקבוצות של 3 תלמידים מאותה כיתה לפי מיפוי ביה"ס, מתבצע במיט לאורך כל השנה. תמיכה בידע ובמנטלי.',
  needs:['reinforcement'], ages:['יא','יב'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'על בסיס כל הקודם זוכה (126 קבוצות).', period:'נובמבר–יוני', status:'בתכנון',
  knowledge:3, mental:1},
 
 {id:'metargel', name:'מתרגל', category:'פדגוגי',
- description:'סיוע ותמיכה לתלמידים, בקבוצות של 5–10 תלמידים, שעתיים בשבוע, 15 שבועות.',
+ description:'סיוע ותמיכה לתלמידים, בקבוצות של עד 5–10 תלמידים, שעתיים בשבוע, 15 שבועות.',
  needs:['reinforcement'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'לבחירת בית הספר. מכסה של מתרגל אחד לכל בית ספר, בהיקף של 20–30 שעות.', period:'ינואר–יוני (15 שבועות)', status:'נפתח 1.1',
  knowledge:3, mental:0},
 
 {id:'bootcamp3', name:'בוטקאמפ – 3 ימים, 5 שעות ביום', category:'משולב ידע ומנטלי',
- description:'קורס אינטנסיבי וממוקד בתחום דעת, המשלב תוכן לימודי עם עבודה מנטלית.',
+ description:'בוטקאמפ הוא קורס אינטנסיבי וממוקד בתחום דעת ומשולב במנטלי – מדמ"ח / מתמטיקה / פיזיקה.',
  needs:['reinforcement','motivation'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'לבחירת בית הספר. מקסימום 2 בוטקאמפים לבית ספר (בכל האורכים גם יחד).', period:'ספטמבר–יוני', status:'נפתח 1.11',
+ eligibility:'לבחירת בית הספר. מכסת בוטקאמפים לבתי הספר בהתאם למפתח.', period:'ספטמבר–יוני', status:'נפתח 1.11',
  knowledge:2, mental:2, groupKey:'bootcamp'},
 
 {id:'bootcamp4', name:'בוטקאמפ – 4 ימים, 5 שעות ביום', category:'משולב ידע ומנטלי',
- description:'קורס אינטנסיבי וממוקד בתחום דעת, המשלב תוכן לימודי עם עבודה מנטלית.',
+ description:'בוטקאמפ הוא קורס אינטנסיבי וממוקד בתחום דעת ומשולב במנטלי – מדמ"ח / מתמטיקה / פיזיקה.',
  needs:['reinforcement','motivation'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'לבחירת בית הספר. מקסימום 2 בוטקאמפים לבית ספר (בכל האורכים גם יחד).', period:'ספטמבר–יוני', status:'נפתח 1.11',
+ eligibility:'לבחירת בית הספר. מכסת בוטקאמפים לבתי הספר בהתאם למפתח.', period:'ספטמבר–יוני', status:'נפתח 1.11',
  knowledge:2, mental:2, groupKey:'bootcamp'},
 
 {id:'bootcamp5', name:'בוטקאמפ – 5 ימים, 5 שעות ביום', category:'משולב ידע ומנטלי',
- description:'קורס אינטנסיבי וממוקד בתחום דעת, המשלב תוכן לימודי עם עבודה מנטלית.',
+ description:'בוטקאמפ הוא קורס אינטנסיבי וממוקד בתחום דעת ומשולב במנטלי – מדמ"ח / מתמטיקה / פיזיקה.',
  needs:['reinforcement','motivation'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'לבחירת בית הספר. מקסימום 2 בוטקאמפים לבית ספר (בכל האורכים גם יחד).', period:'ספטמבר–יוני', status:'נפתח 1.11',
+ eligibility:'לבחירת בית הספר. מכסת בוטקאמפים לבתי הספר בהתאם למפתח.', period:'ספטמבר–יוני', status:'נפתח 1.11',
  knowledge:2, mental:2, groupKey:'bootcamp'},
 
 {id:'mental_workshop', name:'סדנה מנטלית', category:'מנטלי',
- description:'4–8 מפגשים (בהתאם לנושא) להקניית ידע מנטלי ותרגולו: מוטיבציה ודפוס חשיבה מתפתח, התמודדות עם אתגרים וכישלונות, ניהול עצמי. ניתן לביצוע גם כסדנה לנערות בלבד.',
+ description:'מטרת הסדנה הבאת הידע המנטלי ותרגולו, ליצור היכרות של התלמידים ולתת להם כלים להתמודדות עם האתגרים המנטליים. מספר המפגשים משתנה בין 4–8 בהתאם לנושא. נושאים לדוגמה – מוטיבציה ודפוס חשיבה מתפתח, התמודדות עם אתגרים, כשלונות, ניהול עצמי. ניתן לבצע את הסדנאות לנערות בלבד.',
  needs:['motivation','dropout_prevention'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'בית ספר ממשיך – חברה יהודית: 3 סדנאות, חברה ערבית: 2 סדנאות. בית ספר חדש: סדנה אחת.', period:'ספטמבר–יוני', status:'נפתח 1.9',
+ eligibility:'בית ספר ממשיך – כל מסלול בית ספרי 6 שנתי זכאי לעד 3 סדנאות. בית ספר חדש – כל מסלול בית ספרי זכאי לסדנה אחת.', period:'ספטמבר–יוני', status:'נפתח 1.9',
  knowledge:0, mental:3, quotaBySectorStatus:{'יהודי':{'ממשיך':3,'חדש':1},'ערבי':{'ממשיך':2,'חדש':1}}},
 
 {id:'tech_summit_day', name:'Tech-Day – יום שיא טכנולוגי', category:'מנטלי', quotaPool:'summit_day',
- description:'יום Hands-on בתחומי הפיזיקה והמחשבים, לחיבור בין ידע תיאורטי לעולם המעשי – למשל רחפנים, רובוטיקה, אופטיקה.',
+ description:'יום שיא טכנולוגי הוא יום של Hands-on בתחומי הפיזיקה והמחשבים, שמטרתו חיבור בין ידע תיאורטי לכיצד זה נראה בפועל. ימי שיא לדוגמה – רחפנים, רובוטיקה, אופטיקה.',
  needs:['future_vision'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'בית ספר ממשיך: 2 ימי שיא. בית ספר חדש: יום אחד.', period:'ספטמבר–יוני', status:'נפתח 1.9',
+ eligibility:'בית ספר ממשיך – כל מסלול בית ספרי 6 שנתי זכאי ל-3 ימים. בית ספר חדש – כל מסלול בית ספרי זכאי ליום אחד.', period:'ספטמבר–יוני', status:'נפתח 1.9',
  knowledge:0, mental:3, quotaBySectorStatus:{'יהודי':{'ממשיך':3,'חדש':1},'ערבי':{'ממשיך':3,'חדש':1}}},
 
 {id:'hitech_tour_day', name:'יום סיור בהייטק', category:'מנטלי', quotaPool:'summit_day',
- description:'חיבור תלמידות ותלמידים לתמונת העתיד בהייטק, באמצעות הכרות ראשונית עם עולם ההייטק בסביבתו הטבעית – שיחת השראה/פאנל וסיור בחברה מארחת.',
+ description:'יום סיור בהייטק מטרתו לחבר תלמידות ותלמידים לתמונת עתיד להייטק ולהכיר להם באופן ראשוני את עולם ההייטק בביתו הטבעי. במסגרת היום יש שיחת השראה/פאנל והיכרות עם חברת ההייטק המארחת.',
  needs:['future_vision'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'יום חליפי ליום שיא טכנולוגי – נספר באותה מכסה.', period:'ספטמבר–יוני', status:'נפתח 1.9',
  knowledge:0, mental:3, quotaBySectorStatus:{'יהודי':{'ממשיך':3,'חדש':1},'ערבי':{'ממשיך':3,'חדש':1}}},
 
 {id:'entrepreneurship', name:'תוכנית יזמות', category:'מנטלי',
- description:'חיבור בין חיזוק המסוגלות לתמונת עתיד: התלמידים מתנסים בפתרון בעיה משמעותית להם באמצעות טכנולוגיה, בעבודת צוות.',
+ description:'היזמות מחברת בין מסוגלות ותמונת עתיד. התלמידים מתנסים בפתרון בעיה שחשובה להם על ידי שימוש בטכנולוגיה, תוך כדי עבודת צוות ומיומנויות נוספות.',
  needs:['motivation','future_vision'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'בית ספר ממשיך: קבוצה שנתית אחת. בית ספר חדש: קבוצה אחת קצרה.', period:'ספטמבר–יוני', status:'נפתח 1.9',
+ eligibility:'קבוצת יזמות לכל בית ספר.', period:'ספטמבר–יוני', status:'נפתח 1.9',
  knowledge:1, mental:2, quotaBySectorStatus:{'יהודי':{'ממשיך':1,'חדש':1},'ערבי':{'ממשיך':1,'חדש':1}}},
 
 {id:'mental_5on5', name:'תגבור מנטלי 5 על 5', category:'מנטלי',
- description:'מענה לתלמידים על סף נשירה: הקניית כלים מנטליים על ידי מדריכה/יועצת בחמישה מפגשים, לחיזוק החוסן והמסוגלות.',
+ description:'מענה מיועד לתלמידים על סף נשירה. הקניית כלים מנטליים על ידי מדריכה/יועצת בחמישה מפגשים, לחיזוק החוסן והמסוגלות.',
  needs:['dropout_prevention'], ages:['י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
  eligibility:'פילוט – תלוי פניות מדריכות, ניתן לביצוע עצמי על ידי יועצת בית ספר.', period:'ספטמבר–יוני', status:'נפתח 1.9',
  knowledge:0, mental:3},
 
 {id:'tech_inspiration_talks', name:'חיבור להייטק – הרצאות השראה', category:'חיבור לטק',
- description:'הרצאת השראה של עובדות ועובדים מהייטק, המספרים על המסלול שלהם מבית הספר להייטק – בשיתוף יחידת החדשנות.',
+ description:'הרצאת השראה של עובדות ועובדי הייטק שיספרו על המסלול שלהם מבית הספר להייטק, בשיתוף פעולה עם יחידת החדשנות.',
  needs:['future_vision'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'פתוח לכלל בתי הספר בתוכנית.', period:'דצמבר–מאי', status:'נפתח 1.9',
+ eligibility:'כלל בתי הספר בתוכנית.', period:'דצמבר–מאי', status:'נפתח 1.9',
  knowledge:0, mental:2},
 
 {id:'tech_mentors_marathon', name:'חיבור להייטק – מרתון עם מנטורים', category:'חיבור לטק',
- description:'מנטורים מהייטק מגיעים לימי מרתון בית ספריים לקראת הבגרויות, ללווי ותמיכה ממוקדת.',
+ description:'מנטורים מהייטק יבואו לימי מרתון בית ספריים לקראת בגרויות.',
  needs:['motivation','dropout_prevention','bagrut_prep'], ages:['י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'פתוח לכלל בתי הספר.', period:'ינואר, לקראת בגרויות', status:'נפתח 1.9',
+ eligibility:'כלל בתי הספר (תלמידי חט"ע).', period:'ינואר, לקראת בגרויות', status:'נפתח 1.9',
  knowledge:1, mental:2},
 
 {id:'pilot_axali', name:'פיילוט טכנולוגי אקסלי', category:'מנטלי',
- description:'אפליקציה של סימולציות מנטליות לשילוב בשיעורי מתמטיקה, לחיזוק תחושת המסוגלות של תלמידות ותלמידי שכבה ז\'.',
+ description:'אפליקציה של סימולציות מנטליות לתלמידות ותלמידי כיתה ז\', לשילוב בשיעורי מתמטיקה. הסימולציות מחזקות את תחושת המסוגלות של התלמידות והתלמידים.',
  needs:['motivation'], ages:['ז'], audience:['תלמידים'], sector:['יהודי'],
  eligibility:'בתי ספר חברה יהודית ע"ב המלצת מלווה.', period:'ספטמבר–יוני', status:'נפתח 1.9',
  knowledge:1, mental:2},
@@ -559,9 +637,9 @@ const ITEMS = [
  knowledge:3, mental:0},
 
 {id:'tech_track', name:'מגמטק', category:'משולב ידע ומנטלי',
- description:'מגמה שנתית מלאה, המיועדת לבתי ספר שאין להם מורה למדעי המחשב.',
+ description:'פתרון נקודתי וגמיש לבתי ספר המעוניינים לפתוח קבוצות לימוד / מגמה במקצועות ההייטק אך מתקשים לעשות זאת בשל מחסור בכוח אדם (מדמ"ח).',
  needs:['teacher_shortage','reinforcement','motivation'], ages:['ז','ח','ט','י','יא','יב'], audience:['תלמידים'], sector:['לכולם'],
- eligibility:'לבחירת בית הספר. דורש מינימום 17 תלמידים.', period:'מגמה שנתית מלאה', status:'נפתח 1.9',
+ eligibility:'בחינת אפשרות לסייע עם מענה מקצועי חלופי באמצעות ספק.', period:'מגמה שנתית מלאה', status:'נפתח 1.9',
  knowledge:2, mental:2},
 ];
 
@@ -1174,8 +1252,8 @@ function renderResults(app){
     ${more.length? `<button class="more-toggle" id="moreBtn">הצג עוד ${more.length} מענים רלוונטיים</button>
       <div class="result-list" id="moreList" style="display:none; margin-top:12px;"></div>` : ''}
 
-    <div class="section-title">כל מאגר המענים (לבחירה חופשית)</div>
-    <button class="more-toggle" id="allBtn">${resultsShownAll?'הסתר את המאגר המלא':`הצג את כל ${STUDENT_ITEMS_COUNT} המענים במאגר`}</button>
+    <div class="section-title">שאר המאגר (לבחירה חופשית)</div>
+    <button class="more-toggle" id="allBtn">${resultsShownAll?'הסתר את שאר המאגר':'הצג את שאר המענים במאגר'}</button>
     <div class="result-list" id="allList" style="display:${resultsShownAll?'flex':'none'}; margin-top:12px;"></div>
 
     <div class="wizard-nav" style="margin-top:26px;">
@@ -1198,7 +1276,10 @@ function renderResults(app){
     });
   }
 
-  const allEntries = ITEMS.filter(it=>it.audience.includes('תלמידים') && !alreadyIn.has(it.id)).map(it=>({item:it, matchedNeeds:[]}));
+  /* The catalog list must not repeat anything already shown in the two
+     recommendation lists above it. */
+  const shownAbove = new Set([...primary, ...more].map(e=>e.item.id));
+  const allEntries = ITEMS.filter(it=>it.audience.includes('תלמידים') && !alreadyIn.has(it.id) && !shownAbove.has(it.id)).map(it=>({item:it, matchedNeeds:[]}));
   renderMatchList(document.getElementById('allList'), allEntries, answers, false);
   document.getElementById('allBtn').addEventListener('click', ()=>{
     resultsShownAll = !resultsShownAll;
@@ -1273,7 +1354,7 @@ function renderCatalogList(){
           ${it.eligibility ? `<span>ℹ ${escapeHtml(it.eligibility)}</span>` : ''}
         </div>
         ${gq ? `<div class="quota-badge">ℹ ${gq}</div>` : ''}
-        ${infoLinkHtml(it.id) ? `<div style="margin-top:10px;">${infoLinkHtml(it.id)}</div>` : ''}
+        ${examNoteHtml(it.id)}${infoLinkHtml(it.id) ? `<div style="margin-top:10px;">${infoLinkHtml(it.id)}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -1304,7 +1385,7 @@ function renderMatchList(host, entries, answers, withExplain){
           ${it.ages && it.ages.length ? `<span>🎯 שכבות ${it.ages.join(', ')}</span>` : ''}
         </div>
         ${quotaHtml}
-        ${infoLinkHtml(it.id) ? `<div style="margin-top:10px;">${infoLinkHtml(it.id)}</div>` : ''}
+        ${examNoteHtml(it.id)}${infoLinkHtml(it.id) ? `<div style="margin-top:10px;">${infoLinkHtml(it.id)}</div>` : ''}
       </div>
     </label>`;
   }).join('');
@@ -1362,7 +1443,7 @@ function renderPlan(app){
           ${escapeHtml(it.name)}
           <div style="font-size:11.5px;color:var(--slate);margin-top:2px;">${escapeHtml(it.eligibility||'')}</div>
           ${quotaHtml}
-          ${infoLinkHtml(it.id) ? `<div style="margin-top:8px;">${infoLinkHtml(it.id)}</div>` : ''}
+          ${examNoteHtml(it.id)}${infoLinkHtml(it.id) ? `<div style="margin-top:8px;">${infoLinkHtml(it.id)}</div>` : ''}
         </td>
         <td><span class="cat-tag ${catClass(it.category)}">${it.category}</span>${it.status?`<div style="margin-top:6px;">${statusPillHtml(it)}</div>`:''}</td>
         <td>${escapeHtml(it.period)}</td>
