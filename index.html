@@ -66,6 +66,13 @@ a:hover{color:var(--magenta-deep);}
 .brand-divider{width:1px; height:42px; background:rgba(16,16,88,.2); flex:0 0 auto;}
 .brand-name{font-family:'Noto Sans Hebrew',sans-serif; font-size:21px; font-weight:800; line-height:1.1; white-space:nowrap;}
 .brand-sub{font-size:12px; color:rgba(16,16,88,.7); margin-top:2px;}
+.pill.pill-updates{background:#FFF3B0; border-color:#F2D65C; color:#5A4500; font-weight:700;}
+.pill.pill-updates:hover{background:#FFEA80;}
+.upd h3{font-size:16px; font-weight:800; margin:18px 0 6px; color:var(--ink);}
+.upd h3:first-child{margin-top:0;}
+.upd p,.upd li{font-size:14px; line-height:1.6; margin:0 0 4px; text-wrap:pretty;}
+.upd ul{margin:0 0 8px; padding-inline-start:20px;}
+.upd .upd-key{background:#FFF3B0; border-radius:8px; padding:8px 12px; font-weight:700; margin-top:8px;}
 .topbar-actions{display:flex; gap:8px 10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; min-width:0;}
 .pill{
   font-size:13px; padding:7px 14px; border-radius:999px; white-space:nowrap;
@@ -376,6 +383,7 @@ footer.printfoot{display:none;}
     <div>
       <div class="brand-name">מפת מענים</div>
     </div>
+    <button class="pill pill-updates" id="btnUpdates">עדכוני גרסא 1.0</button>
   </div>
   <div class="topbar-actions">
     <a class="pill pill-form-highlight" href="https://wkf.ms/4e42Kre" target="_blank" rel="noopener">✍️ טופס הזמנת מענים</a>
@@ -526,6 +534,59 @@ function openExamsDialog(){
   document.body.appendChild(ov);
 }
 document.addEventListener('click', e=>{ if(e.target.closest && e.target.closest('#btnExams')) openExamsDialog(); });
+function openUpdatesDialog(){
+  const ov = document.createElement('div');
+  ov.className = 'sheet-overlay';
+  ov.innerHTML = `
+    <div class="sheet-box" role="dialog" aria-modal="true" style="max-width:640px;">
+      <div class="sheet-head">
+        <span class="sheet-title">עדכוני גרסא 1.0</span>
+        <button class="sheet-close" aria-label="סגור">✕</button>
+      </div>
+      <div class="sheet-body upd" style="background:#fff;">
+        <h3>1. שימוש בקישור</h3>
+        <p>הקישור הוא פרטי ולא קישור משרדי, ולכן אין להפיץ אותו. השימוש בו הוא פנימי בלבד.</p>
+        <h3>2. עדכונים במפה</h3>
+        <ul>
+          <li>נוספו תאריכי מבחני הבגרות.</li>
+          <li>עודכנו המכסות לבתי הספר במענים המנטליים ובמענה הידע. המכסות מופיעות אוטומטית לאחר הזנת סמל המוסד.</li>
+          <li>המכסות עודכנו גם במערכת Monday.</li>
+        </ul>
+        <h3>3. בוטקמפ ומתרגל</h3>
+        <p>למענים האלה יש שתי מכסות:</p>
+        <ul>
+          <li><b>מכסת פעימה ראשונה</b> – המכסה הזמינה כרגע בהתאם לתקציב הקיים, ומיועדת לשיבוץ אצל ספקים שזמינים בטווח הקצר.</li>
+          <li><b>מכסה שנתית</b> – המכסה המתוכננת להמשך, לאחר שכל התקציב יתקבל. היא מיועדת לשיבוץ אצל ספקים בטווח הארוך, ועשויה לגדול בהמשך.</li>
+        </ul>
+        <p style="font-weight:800; color:#000;">ניתן להזמין מראש את מלוא מכסת המענים לשנת הלימודים, כאשר המענים יינתנו באופן מדורג לאורך השנה</p>
+        <h3>4. מענים שזמינים כרגע</h3>
+        <ul>
+          <li>ימי שיא, סדנאות ויזמות – כל המכסה זמינה.</li>
+          <li>מענים וירטואליים – אין מגבלה כרגע</li>
+        </ul>
+        <p>פירוט המענים הווירטואליים:</p>
+        <ul>
+          <li>מקפצה אישית: מתמטיקה ופיזיקה, לחטיבות הביניים ולכיתות י׳–י״א.</li>
+          <li>חונכות וירטואלית:
+            <ul>
+              <li>מתמטיקה ופיזיקה – לכיתות י״ב.</li>
+              <li>מדעי המחשב – לכיתות י׳–י״ב.</li>
+            </ul>
+          </li>
+        </ul>
+        <p class="upd-key">חשוב במיוחד: המענה של מקפצה אישית הוא בדחיפה, ולכן כדאי להזמין ממנו כמה שיותר.</p>
+        <h3>5. עדכוני גרסה</h3>
+        <p>עדכוני הגרסה יתבצעו אוטומטית, והם יופיעו באותו הקישור. אין צורך לקבל קישור חדש בכל עדכון.</p>
+      </div>
+    </div>`;
+  const close = ()=>{ ov.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = ev=>{ if(ev.key==='Escape') close(); };
+  ov.addEventListener('click', ev=>{ if(ev.target===ov) close(); });
+  ov.querySelector('.sheet-close').addEventListener('click', close);
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+}
+document.addEventListener('click', e=>{ if(e.target.closest && e.target.closest('#btnUpdates')) openUpdatesDialog(); });
 
 function infoLinkHtml(id){
   if(INFO_SHEETS[id]){
