@@ -501,7 +501,7 @@ const EXAM_NOTES = {
   tech_mentors_marathon:'מועדי בגרות קיץ: מדמ"ח 5.5 · מתמטיקה 26–27.5 · פיזיקה 28.6',
   virtual_high_school:'בגרות קיץ: מתמטיקה 26–27.5 · פיזיקה מעבדה 23.6 · פיזיקה 28.6',
 };
-const SOLD_OUT = {virtual_high_school:true};
+const SOLD_OUT = {virtual_class_physics:true};
 function examNoteHtml(id){
   const t = EXAM_NOTES[id];
   const so = SOLD_OUT[id] ? `<div style="display:inline-flex;margin-top:8px;background:#B42318;color:#fff;font-size:12.5px;font-weight:800;padding:4px 12px;border-radius:999px;">המענה אזל מהמלאי · לא ניתן להזמנה</div>` : '';
